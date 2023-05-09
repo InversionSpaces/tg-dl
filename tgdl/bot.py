@@ -2,6 +2,7 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 import os
+from contextlib import AsyncExitStack
 
 from tgdl.downloader import ImageDownloader, ImageDownloadError
 from tgdl.converter import ImageConverter
@@ -13,15 +14,20 @@ class Bot:
         self.downloader = ImageDownloader()
         self.app = ApplicationBuilder().token(token).build()
         self.converter = ImageConverter()
+        self.stack = AsyncExitStack()
 
     async def __aenter__(self):
-        await self.downloader.__aenter__()
-        await self.app.__aenter__()
+        try:
+            await self.stack.enter_async_context(self.downloader)
+            await self.stack.enter_async_context(self.app)
+        except Exception:
+            await self.stack.aclose()
+            raise
+
         return self
 
     async def __aexit__(self, *args):
-        await self.downloader.__aexit__(*args)
-        await self.app.__aexit__(*args)
+        await self.stack.aclose()
 
     def register_handlers(self):
         start_handler = CommandHandler('start', self.start_handler)
