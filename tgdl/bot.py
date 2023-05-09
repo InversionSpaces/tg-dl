@@ -1,9 +1,11 @@
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+import os
 
 from tgdl.downloader import ImageDownloader, ImageDownloadError
 from tgdl.converter import ImageConverter
+from tgdl.constants import *
 
 
 class Bot:
@@ -40,7 +42,7 @@ class Bot:
     async def start_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Send me URL to image or video and I'll download it for you."
+            text=START_MESSAGE
         )
 
     async def url_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -61,16 +63,18 @@ class Bot:
                     chat_id=update.effective_chat.id,
                     photo=name
                 )
+
+                os.remove(name)
             except ImageDownloadError as e:
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"Error: {e}"
+                    text=f"Could not download image ({url}): {e}"
                 )
 
     async def default_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Unrecognized message, please try again."
+            text=NO_URLS_MESSAGE
         )
 
     async def error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE):

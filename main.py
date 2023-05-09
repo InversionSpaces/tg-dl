@@ -1,12 +1,11 @@
 import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 import asyncio as aio
 import signal
-import os
+import argparse
 
 from tgdl.bot import Bot
 from utils.signalwaiter import wait_signals
+from config import TOKEN
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -22,8 +21,13 @@ async def main(token):
 
 
 if __name__ == '__main__':
-    token = os.environ.get('TOKEN')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--token', help='Telegram bot token', nargs='?')
+    args = parser.parse_args()
+
+    token = args.token or TOKEN
+
     if token is None:
-        logging.error('TOKEN environment variable is not set')
+        logging.error('No token provided')
     else:
         aio.run(main(token))
