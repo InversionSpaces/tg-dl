@@ -1,7 +1,7 @@
 import aiohttp
 import imghdr
 import aiofiles
-from yarl import URL
+import urllib.parse
 
 
 class ImageDownloadError(Exception):
@@ -36,8 +36,8 @@ class ImageDownloader:
             )
 
     async def download_image(self, url):
-        if isinstance(url, str):
-            url = URL(url, scheme='http')  # Prepend http scheme if not present
+        # Hack to fix URLs without scheme
+        url = urllib.parse.urlparse(url, scheme='http').geturl()
 
         header = await self.http.head(url)
         self.check_headers(header)

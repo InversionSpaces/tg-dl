@@ -87,6 +87,11 @@ class Bot:
         logging.error(msg="Exception while handling an update:",
                       exc_info=context.error)
 
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=FATAL_ERROR_MESSAGE
+        )
+
     async def start(self):
         self.register_handlers()
         await self.app.start()
